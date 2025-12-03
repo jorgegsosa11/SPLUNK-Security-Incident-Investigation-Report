@@ -53,7 +53,7 @@ This incident is classified as **High Severity**, as it resulted in credential t
 | 06:40:30 | Stolen credentials for user james.allen obtained |
 
 ---
-# 3. Findings (Narrative)
+# 3. Findings 
 ## Initial Access
 The attacker impersonated internal IT support and instructed staff to leave systems powered on. BACKOFFICE-PC1 was accessed remotely, enabling the attacker to begin hands-on-keyboard operations.
 
