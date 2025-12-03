@@ -129,7 +129,7 @@ Failed login attempts observed against ADDC01.
 | Collection | robocopy.exe | T1074 | Data Staging | Data staged in C:\\ProgramData\\Microsoft\\Backup\\Staging |
 | Exfiltration | curl.exe | T1567.002 | Exfiltration to Cloud Storage | Discord webhook exfiltration |
 | Persistence | Registry Run Key | T1547.001 | Boot or Logon Autostart Execution | SecurityHealthSystray persistence key |
-| Privilege Escalation | net1.exe, PowerShell | T1136 | Create Account | Backdoor Domain Admin account backup$ created |
+| Privilege Escalation Persistence | net1.exe, PowerShell | T1136 | Create Account | Backdoor Domain Admin account backup$ created |
 
 # 6. SPL Queries Used
 (queries used during the investigation)
