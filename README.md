@@ -33,7 +33,7 @@ This incident is classified as **High Severity**, as it resulted in credential t
 | Time | Event |
 |------|-------|
 | 02:37:14 | Attacker executed `whoami` for initial discovery |
-| 02:54:31 | `certutil` downloads GoogleUpdateCore.exe |
+| 02:54:31 | `certutil` downloads GoogleUpdateCore.exe
 | 02:54:32 | First C2 beacon to 64.226.121[.]55 |
 | 02:54:47 | Continued C2 communication |
 | 03:00:43 | Malware re-downloaded via certutil |
@@ -92,11 +92,76 @@ Domain backdoor created:
 Failed login attempts observed against ADDC01.
 
 ---
+# 3.5 Who, What, When, Where, Why, How (Incident Breakdown)
+
+## **Who**
+- **Attacker:** Unknown external threat actor using IP **64.226.121[.]55** (DigitalOcean VPS, Frankfurt)
+- **Victim Accounts:** `helpdesk`, `james.allen`
+- **Affected Host:** `BACKOFFICE-PC1`
+- **Impacted Users:** All users whose credentials were dumped; risk to patient + HR data
+
+## **What**
+- Human-operated intrusion involving:
+  - Social engineering (fake IT helpdesk call)
+  - Malware deployment (GoogleUpdateCore.exe)
+  - Privilege escalation (mimikatz, Rubeus)
+  - Persistence via registry Run key
+  - Data staging & exfiltration (robocopy + curl → Discord)
+  - Creation of Domain Admin backdoor (`backup$`)
+
+## **When (UTC)**
+- **Start:** 04 Nov 2025 – 02:37:14 (execution of `whoami`)
+- **End:** 04 Nov 2025 – 06:40:30 (credential theft event)
+- **Duration:** ~4 hours of continuous attacker activity
+
+## **Where**
+- **Compromised System:** BACKOFFICE-PC1
+- **C2 Server:** 64.226.121[.]55 (Frankfurt, Germany)
+- **Persistence Key:** `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run\SecurityHealthSystray`
+- **Data Staging Directory:** `C:\ProgramData\Microsoft\Backup\Staging`
+- **Exfiltration Destination:** Discord Webhook (Cloud)
+
+## **Why**
+Likely motives:
+- Steal credentials for privilege escalation
+- Access patient/HR files for data theft
+- Establish long-term persistence in environment
+- Stage for future ransomware or financial extortion
+
+## **How**
+1. Social engineering → staff instructed to keep systems powered on
+2. certutil abused to download GoogleUpdateCore.exe
+3. Malware establishes TLS-encrypted C2 channel
+4. Attacker deploys LOLBins: certutil, robocopy, curl, net1
+5. mimikatz used to dump credentials → creds.txt
+6. Rubeus used for Kerberos ticket attacks
+7. Domain Admin backdoor (`backup$`) created via net1 + PowerShell
+8. Data staged in hidden folder structure
+9. Exfiltration via curl to Discord
+
+---
+
 # 4. Indicators of Compromise (IOCs)
 ## Malicious IP
 - 64.226.121[.]55 (DigitalOcean VPS, Germany)
 
 ## Files
+- GoogleUpdateCore.exe *(Primary malicious loader)*
+  - **MD5:** 59A0C6EB5818B696D28621C9B5CECB66
+  - **SHA256:** 896b356c35c11d0b645ed423d25fa7dbb1a163074c726f3a94b478e8fb20dfbe
+  - **VirusTotal:** 54/70 vendors flagged as malicious
+  - **Threat Labels:** trojan.sliver, trojan.marte
+  - **Categories:** Trojan, Hacktool, RAT
+  - **Associated Malware Families:** Sliver, Marte, Malgo
+  - **First Seen:** 2025-11-06 11:06:11 UTC
+  - **Last Analysis:** 2025-11-17 09:50:49 UTC
+  - **Alias Names:** cobalt-strike, coinminer, dosia, frostygoop, glassworm, luca-stealer, poet-rat, quasar-rat, sliver, snatch
+
+- msedge.exe (Mimikatz masquerading)
+- Rubeus.exe
+- AdobeUpdateService.exe
+- creds.txt
+- KCD_Exfil.zip
 - GoogleUpdateCore.exe  
 - msedge.exe (Mimikatz)  
 - Rubeus.exe  
@@ -126,13 +191,13 @@ Failed login attempts observed against ADDC01.
 | Defense Evasion | certutil.exe, curl.exe, net1.exe, robocopy.exe | T1218 | Signed Binary Proxy Execution | certutil downloads, curl exfiltration |
 | Credential Access | mimikatz.exe | T1003 | Credential Dumping | creds.txt created, plaintext password dumping |
 | Lateral Movement / Credential Abuse | Rubeus.exe | T1558 | Steal or Forge Kerberos Tickets | Rubeus.exe downloaded at 05:26:14 |
-| Collection | robocopy.exe | T1074 | Data Staging | Data staged in C:\\ProgramData\\Microsoft\\Backup\\Staging |
+| Collection | robocopy.exe | T1074 | Data Staging | Data staged in C:\ProgramData\Microsoft\Backup\Staging |
 | Exfiltration | curl.exe | T1567.002 | Exfiltration to Cloud Storage | Discord webhook exfiltration |
 | Persistence | Registry Run Key | T1547.001 | Boot or Logon Autostart Execution | SecurityHealthSystray persistence key |
-| Privilege Escalation Persistence | net1.exe, PowerShell | T1136 | Create Account | Backdoor Domain Admin account backup$ created |
+| Privilege Escalation | net1.exe, PowerShell | T1136 | Create Account | Backdoor Domain Admin account backup$ created |
 
 # 6. SPL Queries Used
-(queries used during the investigation)
+(All queries used during the investigation)
 
 ### 1. Suspicious Google Executable
 ```spl
